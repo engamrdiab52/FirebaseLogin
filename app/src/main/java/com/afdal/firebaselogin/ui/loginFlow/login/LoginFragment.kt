@@ -32,30 +32,6 @@ class LoginFragment : Fragment() {
     ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_login, container, false)
         //**************************************
-        /*  binding.editTextLoginPassword.addTextChangedListener(object : TextWatcher {
-              override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                  //   TODO("Not yet implemented")
-              }
-
-              override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                  // TODO("Not yet implemented")
-              }
-
-              override fun afterTextChanged(s: Editable?) {
-                  s.toString().validator().nonEmpty().atleastOneNumber().atleastOneSpecialCharacters()
-                      .atleastOneUpperCase().minLength(8).addErrorCallback {
-                          binding.textLayoutLoginPassword.helperText = it
-                          Log.d(TAG, it)
-                      }.addSuccessCallback {
-                          _validEmail = true
-                          Log.d(TAG, "SUCCESS")
-                      }.check()
-              }
-
-          })*/
-
-
-        //*******************************
         binding.buttonLogin.setOnClickListener {
             val validEmail: Boolean =
                 binding.editTextLoginEmail.validator().nonEmpty().validEmail().check()
