@@ -122,22 +122,45 @@
             android:layout_marginEnd="16dp"
             android:text="Sign Up"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/txt_layout_signup_confirm_password" />
 
         <TextView
             android:id="@+id/txt_view_signup_signin"
             style="@style/TextAppearance.AppCompat.Button"
-            android:clickable="true"
-            android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
+            android:clickable="true"
+            android:focusable="true"
             android:text="@string/sign_in"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btn_signup_signup" />
 
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/signup_circular_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="32dp"
+            android:indeterminate="true"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/btn_signup_signup"
+            app:layout_constraintEnd_toStartOf="@+id/txt_view_signup_signin"
+            app:layout_constraintTop_toTopOf="@+id/btn_signup_signup"
+            app:showAnimationBehavior="inward" />
+
+        <TextView
+            android:id="@+id/tv_sigup_error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="ERROR"
+            android:visibility="invisible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btn_signup_signup" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

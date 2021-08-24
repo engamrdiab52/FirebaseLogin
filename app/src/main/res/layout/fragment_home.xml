@@ -45,5 +45,15 @@
             android:text="Details"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/btn_home_signout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="Sign out"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btn_home_sign_in"
+            app:layout_constraintStart_toEndOf="@+id/btn_home_details" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

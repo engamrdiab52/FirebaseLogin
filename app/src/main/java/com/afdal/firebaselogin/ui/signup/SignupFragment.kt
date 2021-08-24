@@ -14,19 +14,21 @@ import androidx.navigation.fragment.findNavController
 import com.afdal.firebaselogin.MainActivity.Companion.TAG
 import com.afdal.firebaselogin.R
 import com.afdal.firebaselogin.databinding.FragmentSignupBinding
-import com.afdal.firebaselogin.ui.loginFlow.login.LoginViewModel
+import com.afdal.firebaselogin.ui.loginFlow.login.FirebaseResponseStatus
+import com.google.firebase.auth.FirebaseAuth
 import com.wajahatkarim3.easyvalidation.core.view_ktx.validator
 
 
 class SignupFragment : Fragment() {
     private lateinit var binding: FragmentSignupBinding
-    var validPassword: Boolean = false
-    var validEmail: Boolean = false
-    var validConfirmPassword: Boolean = false
-    var validUserName: Boolean = false
+    private var validPassword: Boolean = false
+    private var validEmail: Boolean = false
+    private var validConfirmPassword: Boolean = false
+    private var validUserName: Boolean = false
+    private var mAuth: FirebaseAuth? = null
 
 
-    val viewModel = LoginViewModel()
+    var viewModel = SignUpViewModel()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -37,6 +39,8 @@ class SignupFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_signup, container, false)
+        viewModel = SignUpViewModel()
+        mAuth = FirebaseAuth.getInstance()
         binding.edtTxtSignupPassword.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
             }
@@ -57,68 +61,108 @@ class SignupFragment : Fragment() {
                     }.check()
             }
         })
+
+        viewModel.firebaseUser.observe(viewLifecycleOwner,  {
+            if (it != null) {
+                findNavController().navigate(R.id.action_signupFragment_to_verifyEmailFragment)
+            }
+        })
+
+        viewModel.status.observe(viewLifecycleOwner, {
+            when (it) {
+                FirebaseResponseStatus.LOADING -> {
+                    binding.signupCircularProgress.visibility = View.VISIBLE
+                }
+                FirebaseResponseStatus.ERROR -> {
+                    binding.tvSigupError.visibility = View.VISIBLE
+                    binding.signupCircularProgress.visibility = View.INVISIBLE
+                }
+                FirebaseResponseStatus.DONE ->{
+                    binding.tvSigupError.visibility = View.INVISIBLE
+                    binding.signupCircularProgress.visibility = View.INVISIBLE
+                }
+            }
+        })
         binding.btnSignupSignup.setOnClickListener {
-            binding.edtTxtSignupPassword.text.toString().validator().nonEmpty().addErrorCallback {
-                binding.txtLayoutSignupPassword.error = it
-            }.check()
 
+            validateNameFied()
+            validtePasswordField()
+            validateEmailField()
+            vaidateConfirmPasswordField()
 
-            binding.edtTxtSignupName.text.toString().validator().nonEmpty().addErrorCallback {
-                binding.txtLayoutSignupName.error = it
-                validUserName = false
-            }.addSuccessCallback {
-                binding.txtLayoutSignupName.error = null
-                validUserName = true
-            }.check()
-
-
-
-            binding.edtTxtSignupEmail.text.toString().validator().nonEmpty().validEmail()
-                .addErrorCallback {
-                    binding.txtLayoutSignupEmail.error = it
-                    validEmail = false
-                }.addSuccessCallback {
-                    binding.txtLayoutSignupEmail.error = null
-                    validEmail = true
-                }.check()
-
-
-
-            binding.edtTxtSignupConfirmPassword.text.toString().validator().nonEmpty()
-                .addErrorCallback {
-                    validConfirmPassword = false
-                }.addSuccessCallback {
-                    val str1 = binding.edtTxtSignupConfirmPassword.text.toString()
-                    val str2 = binding.edtTxtSignupPassword.text.toString()
-                    val matched = str1 == str2
-                    if (!matched) {
-                        binding.txtLayoutSignupConfirmPassword.error = "Passwords do not match"
-                        validConfirmPassword = false
-                    } else {
-                        binding.txtLayoutSignupConfirmPassword.helperText = "Passwords are matched"
-                        validConfirmPassword = true
-                    }
-                }.check()
-            if (validEmail && validPassword && validUserName && validConfirmPassword) {
-                if ( viewModel.signUpUser(
-                        binding.edtTxtSignupName.text.toString(),
-                        binding.edtTxtSignupEmail.text.toString(),
-                        binding.edtTxtSignupPassword.text.toString()
-                    )){
-                    findNavController().navigate(R.id.action_signupFragment_to_verifyEmailFragment)
-                }else{
-                    //may use singleLiveEvent
-                    Toast.makeText(requireContext(), "** INVALID CREDENTIALS **", Toast.LENGTH_LONG)
-                        .show()
+            if (validEmail && validUserName && validPassword && validConfirmPassword) {
+                val password = binding.edtTxtSignupPassword.text.toString()
+                val email = binding.edtTxtSignupEmail.text.toString()
+                mAuth?.let {
+                    viewModel.signUpUser(it, email, password)
                 }
 
+            }else {
+                //may use singleLiveEvent
+                Toast.makeText(requireContext(), "** INVALID CREDENTIALS **", android.widget.Toast.LENGTH_LONG)
+                    .show()
             }
+
         }
         binding.txtViewSignupSignin.setOnClickListener {
             findNavController().navigate(R.id.action_signupFragment_to_loginFragment)
         }
         // Inflate the layout for this fragment
         return binding.root
+    }
+
+    private fun validtePasswordField() {
+        binding.edtTxtSignupPassword.text.toString().validator().atleastOneNumber().atleastOneSpecialCharacters()
+            .atleastOneUpperCase().minLength(8).nonEmpty().addErrorCallback {
+            binding.txtLayoutSignupPassword.error = it
+        }.check()
+
+        /*s.toString().validator().nonEmpty().atleastOneNumber().atleastOneSpecialCharacters()
+                    .atleastOneUpperCase().minLength(8).addErrorCallback {
+                        binding.txtLayoutSignupPassword.helperText = it
+                        validPassword = false
+                        Log.d(TAG, it)*/
+    }
+
+    private fun validateEmailField() {
+        binding.edtTxtSignupEmail.text.toString().validator().nonEmpty().validEmail()
+            .addErrorCallback {
+                binding.txtLayoutSignupEmail.error = it
+                validEmail = false
+            }.addSuccessCallback {
+                binding.txtLayoutSignupEmail.error = null
+                validEmail = true
+            }.check()
+
+    }
+
+    private fun validateNameFied() {
+        binding.edtTxtSignupName.text.toString().validator().nonEmpty().addErrorCallback {
+            binding.txtLayoutSignupName.error = it
+            validUserName = false
+        }.addSuccessCallback {
+            binding.txtLayoutSignupName.error = null
+            validUserName = true
+        }.check()
+
+    }
+
+    private fun vaidateConfirmPasswordField() {
+        binding.edtTxtSignupConfirmPassword.text.toString().validator().nonEmpty()
+            .addErrorCallback {
+                validConfirmPassword = false
+            }.addSuccessCallback {
+                val str1 = binding.edtTxtSignupConfirmPassword.text.toString()
+                val str2 = binding.edtTxtSignupPassword.text.toString()
+                val matched = str1 == str2
+                if (!matched) {
+                    binding.txtLayoutSignupConfirmPassword.error = "Passwords do not match"
+                    validConfirmPassword = false
+                } else {
+                    binding.txtLayoutSignupConfirmPassword.helperText = "Passwords are matched"
+                    validConfirmPassword = true
+                }
+            }.check()
     }
 
 }
